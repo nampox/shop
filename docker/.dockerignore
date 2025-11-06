@@ -1,0 +1,33 @@
+# Laravel specific
+node_modules
+vendor
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# IDE
+.vscode
+.idea
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Environment
+.env
+.env.backup
+
+# Build artifacts
+public/hot
+public/build
+
+# Tests
+.phpunit.result.cache
+
