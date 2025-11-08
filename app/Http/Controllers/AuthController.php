@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Helpers\ResponseHelper;
+use App\Constants\Message;
 
 class AuthController extends Controller
 {
@@ -21,23 +25,36 @@ class AuthController extends Controller
     /**
      * Xử lý đăng ký
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        try {
+            $validated = $request->validated();
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
 
-        Auth::login($user);
+            Auth::login($user);
 
-        return redirect()->route('home')->with('success', 'Đăng ký thành công!');
+            // Log successful registration
+            $this->logInfo('User registered successfully', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+
+            if ($request->expectsJson()) {
+                return ResponseHelper::success(
+                    ['user' => $user],
+                    Message::REGISTER_SUCCESS
+                );
+            }
+
+            return ResponseHelper::redirectWithMessage('home', Message::REGISTER_SUCCESS);
+        } catch (\Exception $e) {
+            return $this->handleException($e, $request, Message::ERROR);
+        }
     }
 
     /**
@@ -51,22 +68,52 @@ class AuthController extends Controller
     /**
      * Xử lý đăng nhập
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        try {
+            $credentials = $request->validated();
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            
-            return redirect()->intended(route('home'))->with('success', 'Đăng nhập thành công!');
+            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+                $request->session()->regenerate();
+
+                // Log successful login
+                $this->logInfo('User logged in successfully', [
+                    'user_id' => Auth::id(),
+                    'email' => $credentials['email'],
+                    'ip' => $request->ip(),
+                ]);
+
+                if ($request->expectsJson()) {
+                    return ResponseHelper::success(
+                        ['user' => Auth::user()],
+                        Message::LOGIN_SUCCESS
+                    );
+                }
+
+                return ResponseHelper::redirectWithMessage('home', Message::LOGIN_SUCCESS);
+            }
+
+            // Log failed login attempt
+            $this->logWarning('Failed login attempt', [
+                'email' => $credentials['email'],
+                'ip' => $request->ip(),
+            ]);
+
+            if ($request->expectsJson()) {
+                return ResponseHelper::error(
+                    Message::LOGIN_FAILED,
+                    ['email' => [Message::LOGIN_FAILED]]
+                );
+            }
+
+            throw ValidationException::withMessages([
+                'email' => [Message::LOGIN_FAILED],
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return $this->handleException($e, $request, Message::ERROR);
         }
-
-        throw ValidationException::withMessages([
-            'email' => ['Email hoặc mật khẩu không đúng.'],
-        ]);
     }
 
     /**
@@ -74,11 +121,29 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        Auth::logout();
-        
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        
-        return redirect()->route('home')->with('success', 'Đăng xuất thành công!');
+        try {
+            $userId = Auth::id();
+            
+            Auth::logout();
+            
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            // Log successful logout
+            if ($userId) {
+                $this->logInfo('User logged out', [
+                    'user_id' => $userId,
+                    'ip' => $request->ip(),
+                ]);
+            }
+
+            if ($request->expectsJson()) {
+                return ResponseHelper::success(null, Message::LOGOUT_SUCCESS);
+            }
+
+            return ResponseHelper::redirectWithMessage('home', Message::LOGOUT_SUCCESS);
+        } catch (\Exception $e) {
+            return $this->handleException($e, $request, Message::ERROR);
+        }
     }
 }
