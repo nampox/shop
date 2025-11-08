@@ -15,6 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed roles trước
+        $this->call(RoleSeeder::class);
+
+        // Tạo admin user với role admin
+        $this->call(AdminUserSeeder::class);
+
         // User::factory(10)->create();
 
         User::factory()->create([

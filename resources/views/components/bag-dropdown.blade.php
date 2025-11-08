@@ -36,6 +36,14 @@
                                         <span>Tài khoản</span>
                                     </a>
                                 </li>
+                                @if(auth()->user()->canAccessCms())
+                                <li class="dropdown-item" data-animation-delay="0.18">
+                                    <a href="{{ route('cms.dashboard') }}" class="text-white text-decoration-none d-flex align-items-center py-2">
+                                        <i class="bi bi-speedometer2 me-2" style="font-size: 1.2rem;"></i>
+                                        <span>CMS</span>
+                                    </a>
+                                </li>
+                                @endif
                                 <li class="dropdown-item" data-animation-delay="0.2">
                                     <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                         @csrf

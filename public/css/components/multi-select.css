@@ -1,0 +1,210 @@
+/* Multi-Select Component with Search - Base Styles */
+.multi-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select-input {
+    width: 100%;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 48px;
+}
+
+.multi-select-input:focus,
+.multi-select-input.active {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    background: #fff;
+    outline: none;
+}
+
+.multi-select-input .placeholder {
+    color: #212529 !important;
+    font-size: 0.875rem;
+    background-color: transparent !important;
+    opacity: 1 !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+    min-height: auto !important;
+    vertical-align: baseline !important;
+}
+
+.multi-select-input .placeholder[style*="display: none"],
+.multi-select-input:has(.selected-tags[style*="display: flex"]) .placeholder {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.multi-select-input .selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex: 1;
+    align-items: center;
+}
+
+.multi-select-input .selected-tags[style*="display: none"] {
+    display: none !important;
+}
+
+.multi-select-input .selected-tags .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+    white-space: nowrap;
+    animation: fadeIn 0.3s ease;
+}
+
+.multi-select-input .selected-tags .tag .remove {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.multi-select-input .selected-tags .tag .remove:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.multi-select-input .truncate-indicator {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.multi-select-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 300px;
+    overflow: hidden;
+    display: none;
+    animation: slideDown 0.3s ease;
+}
+
+.multi-select-dropdown.show {
+    display: block;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.multi-select-search {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+}
+
+.multi-select-search input {
+    width: 100%;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.multi-select-search input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.multi-select-options {
+    max-height: 240px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem 0;
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.multi-select-options::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.multi-select-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 0.875rem;
+    color: #212529;
+    user-select: none;
+}
+
+.multi-select-option:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.multi-select-option.selected {
+    background: rgba(102, 126, 234, 0.1);
+    font-weight: 600;
+    color: #667eea;
+}
+
+.multi-select-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+

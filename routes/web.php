@@ -10,10 +10,10 @@ Route::get('/', function () {
 
 // Authentication routes
 Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1'); // 5 attempts per minute
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1'); // 5 attempts per minute
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 // Logs routes (should be protected in production)
 Route::middleware(['auth'])->group(function () {
@@ -22,12 +22,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/logs/{fileName}/clear', [\App\Http\Controllers\LogController::class, 'clear'])->name('logs.clear');
 });
 
-// CMS routes (protected)
-Route::prefix('cms')->middleware(['auth'])->name('cms.')->group(function () {
+// CMS routes (protected - chỉ role ID 2-9 mới vào được)
+Route::prefix('cms')->middleware(['auth', 'cms.access'])->name('cms.')->group(function () {
     Route::get('/dashboard', [CmsController::class, 'dashboard'])->name('dashboard');
-    Route::get('/posts', [CmsController::class, 'posts'])->name('posts');
-    Route::get('/pages', [CmsController::class, 'pages'])->name('pages');
-    Route::get('/media', [CmsController::class, 'media'])->name('media');
-    Route::get('/users', [CmsController::class, 'users'])->name('users');
-    Route::get('/settings', [CmsController::class, 'settings'])->name('settings');
+    Route::get('/products', [CmsController::class, 'products'])->name('products');
+    Route::get('/products/{id}', [CmsController::class, 'showProduct'])->name('products.show');
+    Route::post('/products', [CmsController::class, 'storeProduct'])->name('products.store');
+    Route::get('/categories', [CmsController::class, 'categories'])->name('categories');
+    Route::post('/categories', [CmsController::class, 'storeCategory'])->name('categories.store');
+    Route::get('/users', [CmsController::class, 'users'])->middleware('role:admin')->name('users');
 });

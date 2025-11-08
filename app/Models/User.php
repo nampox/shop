@@ -45,4 +45,36 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the roles that belong to the user.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
+    /**
+     * Check if user has a specific role.
+     */
+    public function hasRole($role)
+    {
+        if (is_string($role)) {
+            return $this->roles->contains('slug', $role);
+        }
+        
+        return $this->roles->contains('id', $role->id);
+    }
+
+    /**
+     * Check if user has permission to access CMS.
+     */
+    public function canAccessCms(): bool
+    {
+        $cmsRoleIds = \App\Constants\Role::CMS_ROLE_IDS;
+        
+        return $this->roles()
+            ->whereIn('roles.id', $cmsRoleIds)
+            ->exists();
+    }
 }

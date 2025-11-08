@@ -5,15 +5,19 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use App\Models\User;
+use App\Services\AuthService;
 use App\Helpers\ResponseHelper;
 use App\Constants\Message;
 
 class AuthController extends Controller
 {
+    protected AuthService $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
     /**
      * Hiển thị form đăng ký
      */
@@ -30,13 +34,8 @@ class AuthController extends Controller
         try {
             $validated = $request->validated();
 
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-            ]);
-
-            Auth::login($user);
+            $user = $this->authService->register($validated);
+            $this->authService->login($user);
 
             // Log successful registration
             $this->logInfo('User registered successfully', [
@@ -72,20 +71,21 @@ class AuthController extends Controller
     {
         try {
             $credentials = $request->validated();
+            $remember = $request->boolean('remember');
 
-            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            if ($this->authService->attemptLogin($credentials, $remember)) {
                 $request->session()->regenerate();
 
                 // Log successful login
                 $this->logInfo('User logged in successfully', [
-                    'user_id' => Auth::id(),
+                    'user_id' => $this->authService->id(),
                     'email' => $credentials['email'],
                     'ip' => $request->ip(),
                 ]);
 
                 if ($request->expectsJson()) {
                     return ResponseHelper::success(
-                        ['user' => Auth::user()],
+                        ['user' => $this->authService->user()],
                         Message::LOGIN_SUCCESS
                     );
                 }
@@ -97,8 +97,10 @@ class AuthController extends Controller
             $this->logWarning('Failed login attempt', [
                 'email' => $credentials['email'],
                 'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
             ]);
 
+            // Không tiết lộ email có tồn tại hay không để tránh email enumeration
             if ($request->expectsJson()) {
                 return ResponseHelper::error(
                     Message::LOGIN_FAILED,
@@ -122,9 +124,9 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            $userId = Auth::id();
+            $userId = $this->authService->id();
             
-            Auth::logout();
+            $this->authService->logout();
             
             $request->session()->invalidate();
             $request->session()->regenerateToken();

@@ -12,6 +12,10 @@
     <!-- Bootstrap 5.3.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css">
+    
     <link rel="stylesheet" href="{{ asset('css/header.css') }}">
     
     <style>
@@ -44,6 +48,10 @@
     
     <!-- Bootstrap 5.3.3 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+    
     <script src="{{ asset('js/header.js') }}"></script>
     <script>
     // Đảm bảo mọi modal được append vào body để tránh stacking context/overflow từ ancestor
@@ -55,6 +63,72 @@
             }
         });
     });
+    
+    // Configure SweetAlert2 to match Bootstrap theme
+    const SwalTheme = {
+        confirmButtonColor: '#667eea',
+        cancelButtonColor: '#6c757d',
+        denyButtonColor: '#dc3545',
+        buttonsStyling: true,
+        customClass: {
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-secondary',
+            denyButton: 'btn btn-danger',
+            popup: 'rounded-4',
+            title: 'fw-bold',
+            htmlContainer: 'text-start'
+        }
+    };
+    
+    // Helper functions for common modals
+    window.showConfirm = function(options) {
+        return Swal.fire({
+            ...SwalTheme,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: options.confirmText || 'Xác nhận',
+            cancelButtonText: options.cancelText || 'Hủy',
+            ...options
+        });
+    };
+    
+    window.showSuccess = function(message, title = 'Thành công!') {
+        return Swal.fire({
+            ...SwalTheme,
+            icon: 'success',
+            title: title,
+            text: message,
+            timer: 2000,
+            timerProgressBar: true
+        });
+    };
+    
+    window.showError = function(message, title = 'Lỗi!') {
+        return Swal.fire({
+            ...SwalTheme,
+            icon: 'error',
+            title: title,
+            text: message
+        });
+    };
+    
+    window.showInfo = function(message, title = 'Thông tin') {
+        return Swal.fire({
+            ...SwalTheme,
+            icon: 'info',
+            title: title,
+            text: message
+        });
+    };
+    
+    window.showWarning = function(message, title = 'Cảnh báo!') {
+        return Swal.fire({
+            ...SwalTheme,
+            icon: 'warning',
+            title: title,
+            text: message
+        });
+    };
     </script>
     
     @stack('scripts')
