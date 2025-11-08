@@ -128,7 +128,3 @@ Sau khi chạy `docker-compose exec app php artisan db:seed`, tài khoản admin
 - Storage và cache folders cần có quyền ghi
 - Luôn chạy migrations và seeders sau khi clone project
 - Docker sẽ tự động cài đặt dependencies và build khi khởi động
-
-## 📄 License
-
-MIT License
