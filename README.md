@@ -21,7 +21,7 @@ Hệ thống quản lý shop được xây dựng với Laravel 12, PHP 8.2, MyS
 ### Bước 1: Clone repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/nampox/shop.git
 cd shop
 ```
 
