@@ -29,16 +29,25 @@ class ProductService
             });
         }
 
-        // Status filter
-        if (!empty($filters['status'])) {
+        // Status filter - support multiple statuses
+        if (!empty($filters['status']) && is_array($filters['status'])) {
+            $statuses = array_filter($filters['status']); // Remove empty values
+            if (!empty($statuses)) {
+                $query->whereIn('status', $statuses);
+            }
+        } elseif (!empty($filters['status'])) {
+            // Support single status for backward compatibility
             $query->where('status', $filters['status']);
         }
 
-        // Category filter
-        if (!empty($filters['category'])) {
-            $query->whereHas('categories', function($q) use ($filters) {
-                $q->where('categories.id', $filters['category']);
-            });
+        // Category filter - support multiple categories
+        if (!empty($filters['categories']) && is_array($filters['categories'])) {
+            $categoryIds = array_filter($filters['categories']); // Remove empty values
+            if (!empty($categoryIds)) {
+                $query->whereHas('categories', function($q) use ($categoryIds) {
+                    $q->whereIn('categories.id', $categoryIds);
+                });
+            }
         }
 
         return $query->latest()->paginate($perPage)->withQueryString();
@@ -52,6 +61,18 @@ class ProductService
     public function getActiveCategories(): Collection
     {
         return Category::where('is_active', true)->get();
+    }
+
+    /**
+     * Get all products for autocomplete search
+     *
+     * @return Collection
+     */
+    public function getAllProductsForSearch(): Collection
+    {
+        return Product::select('id', 'name', 'slug')
+            ->orderBy('name')
+            ->get();
     }
 
     /**

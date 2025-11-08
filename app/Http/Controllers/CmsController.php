@@ -49,14 +49,28 @@ class CmsController extends Controller
     {
         $filters = [
             'search' => $request->input('search'),
-            'status' => $request->input('status'),
-            'category' => $request->input('category'),
+            'status' => $request->input('status', []),
+            'categories' => $request->input('categories', []),
         ];
 
         $products = $this->productService->getProducts($filters, 20);
         $categories = $this->productService->getActiveCategories();
         
-        return view('cms.products', compact('products', 'categories'));
+        // Get selected categories from request to preserve filter state
+        $selectedCategories = $request->input('categories', []);
+        if (!is_array($selectedCategories)) {
+            $selectedCategories = $selectedCategories ? [$selectedCategories] : [];
+        }
+        $selectedCategories = array_filter($selectedCategories); // Remove empty values
+        
+        // Get selected statuses from request to preserve filter state
+        $selectedStatuses = $request->input('status', []);
+        if (!is_array($selectedStatuses)) {
+            $selectedStatuses = $selectedStatuses ? [$selectedStatuses] : [];
+        }
+        $selectedStatuses = array_filter($selectedStatuses); // Remove empty values
+        
+        return view('cms.products', compact('products', 'categories', 'selectedCategories', 'selectedStatuses'));
     }
 
     /**

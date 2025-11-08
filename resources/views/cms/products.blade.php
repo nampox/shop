@@ -54,6 +54,19 @@
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.18);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Ensure multi-select dropdown appears above glass-card */
+    .filter-section {
+        position: relative;
+        z-index: 10;
+    }
+    
+    .filter-section .multi-select-wrapper {
+        position: relative;
+        z-index: 10000;
     }
 
     /* Hover effects */
@@ -305,28 +318,31 @@
         <form method="GET" action="{{ route('cms.products') }}" class="row g-3">
             <div class="col-md-4">
                 <label class="form-label fw-semibold text-muted small text-uppercase">Tìm kiếm</label>
-                <input type="text" 
-                       name="search" 
-                       class="form-control modern-input" 
-                       placeholder="Tên sản phẩm, slug..." 
-                       value="{{ request('search') }}">
+                <div class="autocomplete-wrapper" id="search-autocomplete-wrapper">
+                    <input type="text" 
+                           id="search-input"
+                           name="search" 
+                           class="form-control modern-input autocomplete-input" 
+                           placeholder="Tên sản phẩm, slug..." 
+                           autocomplete="off"
+                           value="{{ request('search') }}">
+                    <div class="autocomplete-dropdown" id="search-autocomplete-dropdown"></div>
+                </div>
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold text-muted small text-uppercase">Trạng thái</label>
-                <select name="status" class="form-select modern-input">
-                    <option value="">Tất cả</option>
-                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Đang hoạt động</option>
-                    <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Bản nháp</option>
-                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Không hoạt động</option>
-                    <option value="archived" {{ request('status') == 'archived' ? 'selected' : '' }}>Đã lưu trữ</option>
+                <select id="filter-status" name="status[]" class="multi-select" multiple data-no-auto-init>
+                    <option value="active" {{ in_array('active', $selectedStatuses ?? []) ? 'selected' : '' }}>Đang hoạt động</option>
+                    <option value="draft" {{ in_array('draft', $selectedStatuses ?? []) ? 'selected' : '' }}>Bản nháp</option>
+                    <option value="inactive" {{ in_array('inactive', $selectedStatuses ?? []) ? 'selected' : '' }}>Không hoạt động</option>
+                    <option value="archived" {{ in_array('archived', $selectedStatuses ?? []) ? 'selected' : '' }}>Đã lưu trữ</option>
                 </select>
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold text-muted small text-uppercase">Danh mục</label>
-                <select name="category" class="form-select modern-input">
-                    <option value="">Tất cả</option>
+                <select id="filter-categories" name="categories[]" class="multi-select" multiple data-no-auto-init>
                     @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                        <option value="{{ $category->id }}" {{ in_array($category->id, $selectedCategories ?? []) ? 'selected' : '' }}>
                             {{ $category->name }}
                         </option>
                     @endforeach
@@ -492,6 +508,52 @@
 <script>
 // Get categories for select
 const categories = @json($categories);
+
+// Initialize MultiSelect for filter categories with custom options
+document.addEventListener('DOMContentLoaded', function() {
+    const filterCategorySelect = document.getElementById('filter-categories');
+    if (filterCategorySelect && !filterCategorySelect.multiSelectInstance) {
+        // Get selected categories from PHP
+        const selectedCategories = @json($selectedCategories ?? []);
+        
+        // Ensure selected options are marked as selected
+        if (selectedCategories && selectedCategories.length > 0) {
+            selectedCategories.forEach(catId => {
+                const option = filterCategorySelect.querySelector(`option[value="${catId}"]`);
+                if (option) {
+                    option.selected = true;
+                }
+            });
+        }
+        
+        filterCategorySelect.multiSelectInstance = new MultiSelect(filterCategorySelect, {
+            placeholder: 'Chọn danh mục...',
+            searchPlaceholder: 'Tìm kiếm danh mục...'
+        });
+    }
+    
+    // Initialize MultiSelect for filter status with custom options
+    const filterStatusSelect = document.getElementById('filter-status');
+    if (filterStatusSelect && !filterStatusSelect.multiSelectInstance) {
+        // Get selected statuses from PHP
+        const selectedStatuses = @json($selectedStatuses ?? []);
+        
+        // Ensure selected options are marked as selected
+        if (selectedStatuses && selectedStatuses.length > 0) {
+            selectedStatuses.forEach(status => {
+                const option = filterStatusSelect.querySelector(`option[value="${status}"]`);
+                if (option) {
+                    option.selected = true;
+                }
+            });
+        }
+        
+        filterStatusSelect.multiSelectInstance = new MultiSelect(filterStatusSelect, {
+            placeholder: 'Chọn trạng thái...',
+            searchPlaceholder: 'Tìm kiếm trạng thái...'
+        });
+    }
+});
 
 async function showAddProductModal() {
     const { value: formValues } = await Swal.fire({

@@ -21,11 +21,21 @@ class MultiSelect {
     }
     
     init() {
-        // Get initial selected values
-        const initialValues = this.element.value ? this.element.value.split(',').map(v => v.trim()) : [];
+        // Get initial selected values from option.selected (for multiple select)
+        // First check if element has selected options
+        Array.from(this.element.options).forEach(option => {
+            if (option.value && option.selected) {
+                this.selectedValues.add(option.value);
+            }
+        });
+        
+        // Also check element.value for single select or fallback
+        if (this.element.value && !this.selectedValues.size) {
+            const initialValues = this.element.value.split(',').map(v => v.trim());
         initialValues.forEach(v => {
             if (v) this.selectedValues.add(v);
         });
+        }
         
         // Get all options from select element
         Array.from(this.element.options).forEach(option => {
@@ -332,6 +342,10 @@ class MultiSelect {
 // Auto-initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.multi-select').forEach(select => {
+        // Skip if already initialized or has data-no-auto-init attribute
+        if (select.multiSelectInstance || select.hasAttribute('data-no-auto-init')) {
+            return;
+        }
         new MultiSelect(select);
     });
 });
